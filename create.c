@@ -50,7 +50,8 @@ syscall create(void *funcaddr, ulong ssize, char *name, ulong nargs, ...)
 	ppcb->stkbase = saddr; // set stackbase to stack adress
 	ppcb->stkptr = saddr + ssize - 4; // set stackpointer to top of stack
 	ppcb->stklen = ssize; // set stack size
-    	ppcb->name = name;
+    	strcpy(ppcb->name, name, PNMLEN -1); // set process name
+
 
     /* Initialize stack with accounting block. */
     *saddr = STACKMAGIC;
