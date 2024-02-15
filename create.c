@@ -46,7 +46,7 @@ syscall create(void *funcaddr, ulong ssize, char *name, ulong nargs, ...)
     ppcb = &proctab[pid];
 	
 	// TODO: Setup PCB entry for new process.
-	ppcb->state = PRREADY; // set state of new PCB to ready
+	ppcb->state = PRSUSP; // set state of new PCB to ready
 	ppcb->stkbase = saddr; // set stackbase to stack adress
 	ppcb->stkptr = saddr + ssize - 4; // set stackpointer to top of stack
 	ppcb->stklen = ssize; // set stack size
