@@ -46,6 +46,22 @@ ctxsw:
         sd x13, CTX_A13*8(sp) #saves register x13 to sp offset by 104(13*4)
         sd x14, CTX_A14*8(sp) #saves register x14 to sp offset by 112(14*8)
         sd x15, CTX_A15*8(sp) #saves register x15 to sp offset by 120(15*8)
+        sd x16, CTX_A16*8(sp) # Save register x16
+        sd x17, CTX_A17*8(sp) # Save register x17
+        sd x18, CTX_A18*8(sp) # Save register x18
+        sd x19, CTX_A19*8(sp) # Save register x19
+        sd x20, CTX_A20*8(sp) # Save register x20
+        sd x21, CTX_A21*8(sp) # Save register x21
+        sd x22, CTX_A22*8(sp) # Save register x22
+        sd x23, CTX_A23*8(sp) # Save register x23
+        sd x24, CTX_A24*8(sp) # Save register x24
+        sd x25, CTX_A25*8(sp) # Save register x25
+        sd x26, CTX_A26*8(sp) # Save register x26
+        sd x27, CTX_A27*8(sp) # Save register x27
+        sd x28, CTX_A28*8(sp) # Save register x28
+        sd x29, CTX_A29*8(sp) # Save register x29
+        sd x30, CTX_A30*8(sp) # Save register x30
+        sd x31, CTX_A31*8(sp) # Save register x31
 
 // TODO: Restore process state, including at least the
 //      callee-save ("non-volatile") registers.
@@ -65,6 +81,22 @@ ctxsw:
         ld x13, CTX_A13*8(sp) # loads register x13 from sp offset by 104(13*8)
         ld x14, CTX_A14*8(sp) # loads register x14 from sp offset by 112(14*8)
         ld x15, CTX_A15*8(sp) # loads register x15 from sp offset by 120(15*8)
+        ld x16, CTX_A16*8(sp) # Load register x16
+        ld x17, CTX_A17*8(sp) # Load register x17
+        ld x18, CTX_A18*8(sp) # Load register x18
+        ld x19, CTX_A19*8(sp) # Load register x19
+        ld x20, CTX_A20*8(sp) # Load register x20
+        ld x21, CTX_A21*8(sp) # Load register x21
+        ld x22, CTX_A22*8(sp) # Load register x22
+        ld x23, CTX_A23*8(sp) # Load register x23
+        ld x24, CTX_A24*8(sp) # Load register x24
+        ld x25, CTX_A25*8(sp) # Load register x25
+        ld x26, CTX_A26*8(sp) # Load register x26
+        ld x27, CTX_A27*8(sp) # Load register x27
+        ld x28, CTX_A28*8(sp) # Load register x28
+        ld x29, CTX_A29*8(sp) # Load register x29
+        ld x30, CTX_A30*8(sp) # Load register x30
+        ld x31, CTX_A31*8(sp) # Load register x31
 
 
 //      These call and restore segments must match the register data
