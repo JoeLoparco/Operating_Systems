@@ -29,84 +29,53 @@ syscall create(void *funcaddr, ulong ssize, char *name, ulong nargs, ...)
     va_list ap;                 /* points to list of var args   */
     ulong pads = 0;             /* padding entries in record.   */
 
-    if (ssize < MINSTK)
-        ssize = MINSTK;
-
+    if (ssize < MINSTK) ssize = MINSTK;
     ssize = (ulong)((((ulong)(ssize + 3)) >> 2) << 2);
-    /* round up to even boundary    */
-    saddr = (ulong *)getstk(ssize);     /* allocate new stack and pid   */
-    pid = newpid();
-    /* a little error checking      */
-    if ((((ulong *)SYSERR) == saddr) || (SYSERR == pid))
-    {
-        return SYSERR;
-    }
+    saddr = (ulong *)getstk(ssize); /* allocate new stack */
+    pid = newpid(); /* allocate new PID */
+    if ((((ulong *)SYSERR) == saddr) || (SYSERR == pid)) return SYSERR;
 
     numproc++;
     ppcb = &proctab[pid];
-	
-	// TODO: Setup PCB entry for new process.
-	ppcb->state = PRSUSP; // set state of new PCB to ready
-	ppcb->stkbase = saddr; // set stackbase to stack adress
-	ppcb->stkptr = saddr + ssize - 4; // set stackpointer to top of stack
-	ppcb->stklen = ssize; // set stack size
-    	strcpy(ppcb->name, name, PNMLEN -1); // set process name
 
+    // TODO: Setup PCB entry for new process.
+    ppcb->state = PRSUSP; // Set process state to suspended
+    ppcb->stkbase = (void *)(saddr - ssize); // Set base of stack
+    ppcb->stklen = ssize; // Set length of stack
+    ppcb->stkptr = saddr = (ulong *)( (ulong)saddr + ssize - 32 ); // Prepare stack pointer; reserve space for context
+    strncpy(ppcb->name, name, PNMLEN - 1); // Set process name
+    ppcb->name[PNMLEN - 1] = '\0'; // Ensure null-termination
 
-    /* Initialize stack with accounting block. */
-    *saddr = STACKMAGIC;
-    *--saddr = pid;
-    *--saddr = ppcb->stklen;
-    *--saddr = (ulong)ppcb->stkbase;
+    *--saddr = (ulong)userret; // Set return address for process to userret
+    *--saddr = (ulong)funcaddr; // Emulate call to function with return to userret
+    for (i = 0; i < 14; i++) *--saddr = 0; // Emulate saved registers
 
-    /* Handle variable number of arguments passed to starting function   */
-    if (nargs)
-    {
-        pads = ((nargs - 1) / 8) * 8;
+    // TODO: Initialize process context.
+    va_start(ap, nargs); // Start variable arguments processing
+    for (i = 0; i < nargs; i++) {
+        *--saddr = va_arg(ap, ulong); // Place arguments on stack
     }
-    /* If more than 4 args, pad record size to multiple of native memory */
-    /*  transfer size.  Reserve space for extra args                     */
-    for (i = 0; i < pads; i++)
-    {
-        *--saddr = 0;
-    }
+    va_end(ap); // End variable arguments processing
+    ppcb->stkptr = saddr; // Update process stack pointer in PCB
 
-	// TODO: Initialize process context.
-	//
-	// TODO:  Place arguments into activation record.
-	//        See K&R 7.3 for example using va_start, va_arg and
-	//        va_end macros for variable argument functions.
-
-    return pid;
+    return pid; // Return new process ID
 }
 
-/**
- * Obtain a new (free) process id.
- * @return a free process id, SYSERR if all ids are used
- */
 static pid_typ newpid(void)
 {
     pid_typ pid;                /* process id to return     */
     static pid_typ nextpid = 0;
 
-    for (pid = 0; pid < NPROC; pid++)
-    {                           /* check all NPROC slots    */
+    for (pid = 0; pid < NPROC; pid++) { /* check all NPROC slots    */
         nextpid = (nextpid + 1) % NPROC;
-        if (PRFREE == proctab[nextpid].state)
-        {
+        if (PRFREE == proctab[nextpid].state) {
             return nextpid;
         }
     }
     return SYSERR;
 }
 
-/**
- * Entered when a process exits by return.
- */
 void userret(void)
 {
-    // ASSIGNMENT 5 TODO: Replace the call to kill(); with user_kill();
-    // when you believe your trap handler is working in Assignment 5
-    // user_kill();
-    kill(currpid); 
+    kill(currpid); // Terminate the current process
 }
