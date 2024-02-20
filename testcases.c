@@ -2,107 +2,135 @@
  * @file testcases.c
  * @provides testcases
  *
- * Modified by:
- *
- * and
+ * TA-BOT:MAILTO
  *
  */
-/* Embedded XINU, Copyright (C) 2023.  All rights reserved. */
+/* Embedded XINU, Copyright (C) 2007.  All rights reserved. */
 
 #include <xinu.h>
+
+extern void main(int, char *);
+
+int testmain(int argc, char **argv)
+{
+    int i = 0;
+    kprintf("Hello XINU World!\r\n");
+
+    for (i = 0; i < 10; i++)
+    {
+        kprintf("This is process %d\r\n", currpid);
+
+        /* Uncomment the resched() line for cooperative scheduling. */
+        // resched();
+    }
+    return 0;
+}
+
+void testbigargs(int a, int b, int c, int d, int e, int f, int g, int h, int i, int j, int k, int l, int m, int n, int o, int p)
+{
+    kprintf("Testing bigargs...\r\n");
+    kprintf("a = 0x%08X\r\n", a);
+    kprintf("b = 0x%08X\r\n", b);
+    kprintf("c = 0x%08X\r\n", c);
+    kprintf("d = 0x%08X\r\n", d);
+    kprintf("e = 0x%08X\r\n", e);
+    kprintf("f = 0x%08X\r\n", f);
+    kprintf("g = 0x%08X\r\n", g);
+    kprintf("h = 0x%08X\r\n", h);
+    kprintf("i = 0x%08X\r\n", i);
+    kprintf("j = 0x%08X\r\n", j);
+    kprintf("k = 0x%08X\r\n", k);
+    kprintf("l = 0x%08X\r\n", l);
+    kprintf("m = 0x%08X\r\n", m);
+    kprintf("n = 0x%08X\r\n", n);
+    kprintf("o = 0x%08X\r\n", o);
+    kprintf("p = 0x%08X\r\n", p);
+}
+
+void printpcb(int pid)
+{
+    pcb *ppcb = NULL;
+
+    /* Using the process ID, access it in the PCB table. */
+    ppcb = &proctab[pid];
+
+    /* Printing PCB */
+    kprintf("Process name		  : %s \r\n", ppcb->name);
+
+    switch (ppcb->state)
+    {
+    case PRFREE:
+        kprintf("State of the process	  : FREE \r\n");
+        break;
+    case PRCURR:
+        kprintf("State of the process 	  : CURRENT \r\n");
+        break;
+    case PRSUSP:
+        kprintf("State of the process	  : SUSPENDED \r\n");
+        break;
+    case PRREADY:
+        kprintf("State of the process	  : READY \r\n");
+        break;
+    default:
+        kprintf("ERROR: Process state not correctly set!\r\n");
+        break;
+    }
+
+    /* Print PCB contents and registers */
+    kprintf("Base of run time stack    : 0x%08X \r\n", ppcb->stkbase);
+    kprintf("Stack length of process   : %8u \r\n", ppcb->stklen);
+}
 
 /**
  * testcases - called after initialization completes to test things.
  */
-
-
-
-void delay(int seconds) {
-    volatile unsigned long wait;
-    for (int sec = 0; sec < seconds; sec++) {
-        for (wait = 0; wait < 100000000; wait++);    }
-}
-
-
-void test_kputc(void) {
-    kprintf("Testing kputc()\r\n");
-    kputc('H');
-    kputc('e');
-    kputc('l');
-    kputc('l');
-    kputc('o');
-    kputc('\r'); // Carriage return
-    kputc('\n'); // New line
-}
-
-void test_kgetc(void) {
-    unsigned char c;
-
-    kprintf("Please type a character: ");
-    c = kgetc();
-    kprintf("\r\nYou typed: %c\r\n", c);
-}
-
-void test_kungetc(void) {
-    unsigned char c = 'X';
-
-    kungetc(c); // Pretend we've just read 'X' from the user
-    kprintf("Testing kungetc(): ");
-    c = kgetc(); // This should retrieve the 'X' we just "un-got"
-    kprintf("%c\r\n", c);
-}
-
-
-void test_kcheckc(void) {
-    kprintf("Testing kcheckc() - Type something within 10 seconds.\r\n");
-
-    // Wait for up to 10 seconds for a character to be available
-    for (int i = 0; i < 10; i++) {
-        if (kcheckc()) {
-            kprintf("Character available.\r\n");
-            return; // Exit the test once a character is detected
-        }
-        delay(1);
-    }
-
-    kprintf("No character available after 10 seconds.\r\n");
-}
-
 void testcases(void)
 {
-    unsigned char c;
-    unsigned char q = '0';
+    int c, pid;
+
+    kprintf("0) Test creation of one process\r\n");
+    kprintf("1) Test passing of many args\r\n");
+    kprintf("2) Create three processes and run them\r\n");
+
     kprintf("===TEST BEGIN===\r\n");
-    while(q=='0'){
-    kprintf("Please type a character 1-4:\r\n");
+
+    // TODO: Test your operating system!
+
     c = kgetc();
     switch (c)
     {
+    case '0':
+        // Process creation testcase
+        pid = create((void *)testmain, INITSTK, "MAIN1", 2, 0, NULL);
+        printpcb(pid);
+        break;
+
     case '1':
-         test_kputc();
-         break;
+        // Many arguments testcase
+        pid = create((void *)testbigargs, INITSTK, "MAIN1", 16,
+                     0x11111111, 0x22222222, 0x33333333, 0x44444444,
+                     0x55555555, 0x66666666, 0x77777777, 0x88888888,
+                     0x99999999, 0x10101010, 0x11111111, 0x12121212,
+                     0x13131313, 0x14141414, 0x15151515, 0x16161616);
+        printpcb(pid);
+        // TODO: print out stack with extra args
+        // TODO: ready(pid, RESCHED_YES);
+        break;
+
     case '2':
-         test_kgetc();
-         break;
-    case '3':
-         test_kungetc();
-         break;
-    case '4':
-         test_kcheckc();
-         break;
-        // TODO: Test your operating system!
+        // Create three copies of a process, and let them play.
+        ready(create((void *)testmain, INITSTK, "MAIN1", 2, 0, NULL),
+              RESCHED_NO);
+        ready(create((void *)testmain, INITSTK, "MAIN2", 2, 0, NULL),
+              RESCHED_NO);
+        ready(create((void *)testmain, INITSTK, "MAIN3", 2, 0, NULL),
+              RESCHED_YES);
+        break;
 
     default:
-        kprintf("No test case is assigned to that value!\r\n");
+        break;
     }
-    if(c==4)
-    {
-        q = kgetc();
-    }
-    kprintf("Enter 0 to test again or anything else to quit:\r\n ");
-    q = kgetc();
-}
+
     kprintf("\r\n===TEST END===\r\n");
     return;
 }
-~    
