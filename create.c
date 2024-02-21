@@ -66,9 +66,7 @@ syscall create(void *funcaddr, ulong ssize, char *name, ulong nargs, ...)
     }
 
     // Initialize process context.
-    *--saddr = (ulong)userret; // Set return address for process
-    *--saddr = (ulong)funcaddr; // Emulate call to function with return to userret
-    for (i = 0; i < 14; i++) *--saddr = 0; // Emulate saved registers
+    for (i = 0; i < 32; i++) *--saddr = 0; // Emulate saved registers
 
     // Place arguments into activation record.
     va_start(ap, nargs);
