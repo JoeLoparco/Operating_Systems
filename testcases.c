@@ -114,6 +114,20 @@ void testcases(void)
                      0x13131313, 0x14141414, 0x15151515, 0x16161616);
         printpcb(pid);
         // TODO: print out stack with extra args
+	
+	pcb *ppcb = &proctab[pid];
+
+    	kprintf("Stack contents:\r\n");
+
+    	ulong *argStart = (ulong *)(ppcb->stkbase - (16 * sizeof(ulong))); 
+	// (16 total args)
+
+	// Print the extra arguments 
+	for (int i = 0; i < 16 ; i++) {
+    		kprintf("Extra arg %d: 0x%08X\r\n", i + 1, *argStart);
+    		argStart--; // Move to the next argument
+	}
+
         // TODO: ready(pid, RESCHED_YES);
         break;
 
