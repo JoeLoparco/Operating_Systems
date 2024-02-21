@@ -3,6 +3,10 @@
  * @provides ctxsw
  *
  * COSC 3250 / COEN 4820 Assignment 4
+ * 
+ * @author Maxwell Steffen, Joseph Loparco, ChatGPT4
+ * Instructor Brylow
+ * TA-BOT:MAILTO maxwell.steffen@marquette.edu joseph.loparco@marquette.edu
  */
 /* Embedded XINU, Copyright (C) 2023.  All rights reserved. */
 
@@ -56,22 +60,15 @@ ctxsw:
  	sd s11, CTX_S11*8(sp) #saves register x14 to sp offset by 112(14*8)
 	sd ra, CTX_RA*8(sp)
 	sd sp, CTX_SP*8(sp)
-	sd pc, CTX_PC*8(sp)
-        sd gp, CTX_GP*8(sp) #saves register x15 to sp offset by 120(15*8)
-	sd tp, CTX_TP*8(sp) # Save register x16
-        sd t0, CTX_T0*8(sp) # Save register x17
-        sd t1, CTX_T1*8(sp) # Save register x18
-        sd t2, CTX_T2*8(sp) # Save register x19
-        sd t3, CTX_T3*8(sp) # Save register x20
-        sd t4, CTX_T4*8(sp) # Save register x21
-        sd t5, CTX_T5*8(sp) # Save register x22
-        sd t6, CTX_T6*8(sp) # Save register x23
+	sd ra, CTX_PC*8(sp)
+
 	
 // TODO: Restore process state, including at least the
 //      
 
-	sd a0, CTX_SP*8(sp)
-	ld sp, CTX_A1*8(sp)
+	sd sp, (a0)
+	ld sp, (a1)
+	mv t1, a1
 	
 	ld a0, CTX_A0*8(sp) #saves register x3 to sp offset by 24(3*8)
         ld a1, CTX_A1*8(sp) #saves register x4 to sp offset by 32(4*8)
@@ -95,16 +92,8 @@ ctxsw:
         ld s11, CTX_S11*8(sp) #saves register x14 to sp offset by 112(14*8)
         ld ra, CTX_RA*8(sp)
         ld sp, CTX_SP*8(sp)
-        ld pc, CTX_PC*8(sp)
-        ld gp, CTX_GP*8(sp) #saves register x15 to sp offset by 120(15*8)
-        ld tp, CTX_TP*8(sp) # Save register x16
-        ld t0, CTX_T0*8(sp) # Save register x17
-	ld t1, CTX_T1*8(sp) # Save register x18
-	ld t2, CTX_T2*8(sp) # Save register x19
-        ld t3, CTX_T3*8(sp) # Save register x20
-        ld t4, CTX_T4*8(sp) # Save register x21
-        ld t5, CTX_T5*8(sp) # Save register x22
-        ld t6, CTX_T6*8(sp) # Save register x23
+        ld t0, CTX_PC*8(sp)
+
 	addi	sp,sp,256
 
 //      These call and restore segments must match the register data
@@ -112,8 +101,8 @@ ctxsw:
 
 // TODO: Jump to next function
 
-	    ld t0, CTX_PC*8(sp)   // Load the new program counter
-  	    jalr ra, t0           // Jump to the new program counter
+	    sd sp, (t1)
+  	    jalr zero, (t0)           // Jump to the new program counter
 //	Note: there are two important values at play here --
 //	the address of the process's function that we want to end up in
 //	once we leave this ctxsw(), and the value we want to have in the

@@ -2,7 +2,11 @@
  * @file testcases.c
  * @provides testcases
  *
- * TA-BOT:MAILTO
+ * COSC 3250 - Project #4
+ * 
+ * @author Maxwell Steffen, Joseph Loparco, ChatGPT4
+ * Instructor Brylow
+ * TA-BOT:MAILTO maxwell.steffen@marquette.edu joseph.loparco@marquette.edu
  *
  */
 /* Embedded XINU, Copyright (C) 2007.  All rights reserved. */
@@ -21,7 +25,7 @@ int testmain(int argc, char **argv)
         kprintf("This is process %d\r\n", currpid);
 
         /* Uncomment the resched() line for cooperative scheduling. */
-        // resched();
+         resched();
     }
     return 0;
 }
@@ -115,20 +119,18 @@ void testcases(void)
         printpcb(pid);
         // TODO: print out stack with extra args
 	
-	pcb *ppcb = &proctab[pid];
+	
 
     	kprintf("Stack contents:\r\n");
-
-    	ulong *argStart = (ulong *)(ppcb->stkbase - (16 * sizeof(ulong))); 
-	// (16 total args)
-
-	// Print the extra arguments 
-	for (int i = 0; i < 16 ; i++) {
-    		kprintf("Extra arg %d: 0x%08X\r\n", i + 1, *argStart);
-    		argStart--; // Move to the next argument
+	pcb *ppcb = NULL;
+	ppcb = &proctab[pid];
+	int i = 0;
+	while((ppcb->stkptr + i) != ppcb->stkbase){
+		kprintf("%x\r\n",ppcb->stkptr +i);
+		i++;
 	}
-
-        // TODO: ready(pid, RESCHED_YES);
+        // TODO:
+	ready(pid, RESCHED_YES);	
         break;
 
     case '2':

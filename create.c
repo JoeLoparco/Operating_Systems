@@ -3,6 +3,9 @@
  * @provides create, newpid, userret
  *
  * COSC 3250 Assignment 4
+ * @author Maxwell Steffen, Joseph Loparco, ChatGPT4
+ * Instructor Brylow
+ * TA-BOT:MAILTO maxwell.steffen@marquette.edu joseph.loparco@marquette.edu
  */
 /* Embedded XINU, Copyright (C) 2008.  All rights reserved. */
 
@@ -45,9 +48,8 @@ syscall create(void *funcaddr, ulong ssize, char *name, ulong nargs, ...)
 
     // Setup PCB entry for new process.
     ppcb->state = PRSUSP;
-    ppcb->stkbase = (void *)(saddr - ssize);
+    ppcb->stkbase = (void *)(saddr);
     ppcb->stklen = ssize;
-    ppcb->stkptr = saddr = (ulong *)( (ulong)saddr + ssize - sizeof(ulong) * 16 ); // Adjust for context saving
     strncpy(ppcb->name, name, PNMLEN - 1);
     ppcb->name[PNMLEN - 1] = '\0';
 
@@ -67,17 +69,37 @@ syscall create(void *funcaddr, ulong ssize, char *name, ulong nargs, ...)
 
     // Initialize process context.
     for (i = 0; i < 32; i++) *--saddr = 0; // Emulate saved registers
-
+	saddr[CTX_PC] = funcaddr;
+	saddr[CTX_RA] = userret;
+	saddr[CTX_SP] = saddr;
     // Place arguments into activation record.
+    
     va_start(ap, nargs);
-    saddr -= nargs; // Move stack pointer down to make room for arguments
-    for (i = 0; i < nargs; i++) {
-        saddr[i] = va_arg(ap, ulong); // Place arguments on stack
+    ulong ival;
+    int w = 0;
+    ulong *p;
+    for(p = ap; *p; p++){
+	ival = va_arg(ap, ulong);
+	*(w + saddr) = ival;
+	w++;
+	if(pads!=0 && w==8)
+	{
+		w+=24;
+	}	
     }
-    va_end(ap);
+   /* for (i = 0; i < nargs; i++) {
+         // Place arguments on stack
+	
+	if (i < 8){
+	saddr[i] = va_arg(ap, ulong);
+	}
+	else{
+	*--saddr = va_arg(ap, ulong);
+	}
+    }*/
 
     ppcb->stkptr = saddr; // Update process stack pointer in PCB
-
+    va_end(ap);
     return pid;
 }
 
