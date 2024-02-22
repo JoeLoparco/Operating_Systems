@@ -130,7 +130,9 @@ void testcases(void)
 		i++;
 	}
         // TODO:
-	ready(pid, RESCHED_YES);	
+	kprintf("before ready PID\n");
+	ready(pid,RESCHED_YES);
+	kprintf("After ready PID\n");	
         break;
 
     case '2':

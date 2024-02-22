@@ -34,8 +34,7 @@ ctxsw:
 
 // TODO: Save process state, including at least the 
 //	callee-save ("non-volatile") registers.
-
-	mv sp, a0	
+	
 	addi sp,sp,-256	
 
 	sd a0, CTX_A0*8(sp) #saves register x3 to sp offset by 24(3*8)
@@ -91,7 +90,6 @@ ctxsw:
         ld s10, CTX_S10*8(sp) #saves register x13 to sp offset by 104(13*4)
         ld s11, CTX_S11*8(sp) #saves register x14 to sp offset by 112(14*8)
         ld ra, CTX_RA*8(sp)
-        ld sp, CTX_SP*8(sp)
         ld t0, CTX_PC*8(sp)
 
 	addi	sp,sp,256
