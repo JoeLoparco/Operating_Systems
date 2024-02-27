@@ -1,12 +1,7 @@
-/**
  * @file testcases.c
  * @provides testcases
  *
- * COSC 3250 - Project #4
- * 
- * @author Maxwell Steffen, Joseph Loparco, ChatGPT4
- * Instructor Brylow
- * TA-BOT:MAILTO maxwell.steffen@marquette.edu joseph.loparco@marquette.edu
+ * TA-BOT:MAILTO
  *
  */
 /* Embedded XINU, Copyright (C) 2007.  All rights reserved. */
@@ -14,6 +9,45 @@
 #include <xinu.h>
 
 extern void main(int, char *);
+
+int test_usernone(void) {
+        kprintf("This is a test of ...");
+        user_none();
+        kprintf("user_none() syscall\r\n");
+
+        return 0;
+}
+
+int test_userputc(void) {
+        user_putc(0, 'H');
+        user_putc(0, 'e');
+        user_putc(0, 'l');
+        user_putc(0, 'l');
+        user_putc(0, 'o');
+        user_putc(0, ' ');
+        user_putc(0, 'W');
+        user_putc(0, 'o');
+        user_putc(0, 'r');
+        user_putc(0, 'l');
+        user_putc(0, 'd');
+        user_putc(0, '!');
+        user_putc(0, '\r');
+        user_putc(0, '\n');
+
+        return 0;
+}
+
+int test_usergetc(void) {
+        char c;
+        kprintf("Echo characters until 'X': ");
+        while ((c = user_getc(0)) != 'X')
+        {
+                user_putc(0, c);
+        }
+        kprintf("\r\n");
+
+        return 0;
+}
 
 int testmain(int argc, char **argv)
 {
@@ -24,13 +58,12 @@ int testmain(int argc, char **argv)
     {
         kprintf("This is process %d\r\n", currpid);
 
-        /* Uncomment the resched() line for cooperative scheduling. */
-         resched();
+        user_yield();
     }
     return 0;
 }
 
-void testbigargs(int a, int b, int c, int d, int e, int f, int g, int h, int i, int j, int k, int l, int m, int n, int o, int p)
+void testbigargs(int a, int b, int c, int d, int e, int f, int g, int h)
 {
     kprintf("Testing bigargs...\r\n");
     kprintf("a = 0x%08X\r\n", a);
@@ -41,14 +74,6 @@ void testbigargs(int a, int b, int c, int d, int e, int f, int g, int h, int i, 
     kprintf("f = 0x%08X\r\n", f);
     kprintf("g = 0x%08X\r\n", g);
     kprintf("h = 0x%08X\r\n", h);
-    kprintf("i = 0x%08X\r\n", i);
-    kprintf("j = 0x%08X\r\n", j);
-    kprintf("k = 0x%08X\r\n", k);
-    kprintf("l = 0x%08X\r\n", l);
-    kprintf("m = 0x%08X\r\n", m);
-    kprintf("n = 0x%08X\r\n", n);
-    kprintf("o = 0x%08X\r\n", o);
-    kprintf("p = 0x%08X\r\n", p);
 }
 
 void printpcb(int pid)
@@ -59,21 +84,21 @@ void printpcb(int pid)
     ppcb = &proctab[pid];
 
     /* Printing PCB */
-    kprintf("Process name		  : %s \r\n", ppcb->name);
+    kprintf("Process name                 : %s \r\n", ppcb->name);
 
     switch (ppcb->state)
     {
     case PRFREE:
-        kprintf("State of the process	  : FREE \r\n");
+        kprintf("State of the process     : FREE \r\n");
         break;
     case PRCURR:
-        kprintf("State of the process 	  : CURRENT \r\n");
+        kprintf("State of the process     : CURRENT \r\n");
         break;
     case PRSUSP:
-        kprintf("State of the process	  : SUSPENDED \r\n");
+        kprintf("State of the process     : SUSPENDED \r\n");
         break;
     case PRREADY:
-        kprintf("State of the process	  : READY \r\n");
+        kprintf("State of the process     : READY \r\n");
         break;
     default:
         kprintf("ERROR: Process state not correctly set!\r\n");
@@ -90,52 +115,37 @@ void printpcb(int pid)
  */
 void testcases(void)
 {
-    int c, pid;
+    int c;
 
-    kprintf("0) Test creation of one process\r\n");
-    kprintf("1) Test passing of many args\r\n");
-    kprintf("2) Create three processes and run them\r\n");
+    kprintf("0) Test user_none syscall\r\n");
+    kprintf("1) Test user_getc syscall\r\n");
+    kprintf("2) Test user_putc syscall\r\n");
+    kprintf("3) Create three processes that test user_yield syscall\r\n");
 
     kprintf("===TEST BEGIN===\r\n");
 
     // TODO: Test your operating system!
 
     c = kgetc();
+    kprintf("after kgetc");
     switch (c)
     {
     case '0':
-        // Process creation testcase
-        pid = create((void *)testmain, INITSTK, "MAIN1", 2, 0, NULL);
-        printpcb(pid);
-        break;
+        ready(create((void *)test_usernone, INITSTK, "test_usernone", 0),
+              RESCHED_YES);
+                break;
 
     case '1':
-        // Many arguments testcase
-        pid = create((void *)testbigargs, INITSTK, "MAIN1", 16,
-                     0x11111111, 0x22222222, 0x33333333, 0x44444444,
-                     0x55555555, 0x66666666, 0x77777777, 0x88888888,
-                     0x99999999, 0x10101010, 0x11111111, 0x12121212,
-                     0x13131313, 0x14141414, 0x15151515, 0x16161616);
-        printpcb(pid);
-        // TODO: print out stack with extra args
-	
-	
-
-    	kprintf("Stack contents:\r\n");
-	pcb *ppcb = NULL;
-	ppcb = &proctab[pid];
-	int i = 0;
-	while((ppcb->stkptr + i) != ppcb->stkbase){
-		kprintf("%x\r\n",ppcb->stkptr +i);
-		i++;
-	}
-        // TODO:
-	kprintf("before ready PID\n");
-	ready(pid,RESCHED_YES);
-	kprintf("After ready PID\n");	
+        ready(create((void *)test_usergetc, INITSTK, "test_usergetc", 0),
+              RESCHED_YES);
         break;
 
     case '2':
+        ready(create((void *)test_userputc, INITSTK, "test_userputc", 0),
+              RESCHED_YES);
+                break;
+
+    case '3':
         // Create three copies of a process, and let them play.
         ready(create((void *)testmain, INITSTK, "MAIN1", 2, 0, NULL),
               RESCHED_NO);
@@ -143,6 +153,8 @@ void testcases(void)
               RESCHED_NO);
         ready(create((void *)testmain, INITSTK, "MAIN3", 2, 0, NULL),
               RESCHED_YES);
+        while (numproc > 1)
+            resched();
         break;
 
     default:
@@ -152,3 +164,19 @@ void testcases(void)
     kprintf("\r\n===TEST END===\r\n");
     return;
 }
+~                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                          
+~                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                          
+~                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                          
+~                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                          
+~                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                          
+~                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                          
+~                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                          
+~                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                          
+~                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                          
+~                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                          
+~                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                          
+~                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                          
+~                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                          
+~                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                          
+~                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                          
+~                                                                
