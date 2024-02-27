@@ -39,7 +39,7 @@ void dispatch(ulong cause, ulong val, ulong *frame, ulong *program_counter) {
 		//* Find the system call number that's triggered
 		ulong syscall_num = CTX_A7(frame); // this is where I think the syscall number is but I'm not sure will ask brylow tomorrow.
 		//* Pass the system call number and any arguments into syscall_dispatch. Make sure to set the return value in the appropriate spot.
-		CTX_RA = syscall_dsipatch(syscall_num, *frame); // Not sure where exactly on the frame the arguments for syscall are stored.
+		CTX_RA(frame) = syscall_dsipatch(syscall_num, *frame); // Not sure where exactly on the frame the arguments for syscall are stored.
 		//* Update the program counter appropriately with set_sepc
 		
     }
