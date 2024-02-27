@@ -69,33 +69,33 @@ syscall create(void *funcaddr, ulong ssize, char *name, ulong nargs, ...)
 
     // Initialize process context.
     for (i = 0; i < 32; i++) *--saddr = 0; // Emulate saved registers
-	saddr[CTX_PC] = funcaddr;
-	saddr[CTX_RA] = userret;
-	saddr[CTX_SP] = saddr;
+        saddr[CTX_PC] = funcaddr;
+        saddr[CTX_RA] = userret;
+        saddr[CTX_SP] = saddr;
     // Place arguments into activation record.
-    
+
     va_start(ap, nargs);
     ulong ival;
     int w = 0;
     ulong *p;
     for(p = ap; *p; p++){
-	ival = va_arg(ap, ulong);
-	*(w + saddr) = ival;
-	w++;
-	if(pads!=0 && w==8)
-	{
-		w+=24;
-	}	
+        ival = va_arg(ap, ulong);
+        *(w + saddr) = ival;
+        w++;
+        if(pads!=0 && w==8)
+        {
+                w+=24;
+        }
     }
    /* for (i = 0; i < nargs; i++) {
          // Place arguments on stack
-	
-	if (i < 8){
-	saddr[i] = va_arg(ap, ulong);
-	}
-	else{
-	*--saddr = va_arg(ap, ulong);
-	}
+        
+        if (i < 8){
+        saddr[i] = va_arg(ap, ulong);
+        }
+        else{
+        *--saddr = va_arg(ap, ulong);
+        }
     }*/
 
     ppcb->stkptr = saddr; // Update process stack pointer in PCB
@@ -119,5 +119,16 @@ static pid_typ newpid(void)
 
 void userret(void)
 {
-    kill(currpid); // Terminate the current process
+   user_kill(); // Terminate the current process
 }
+~                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                           
+~                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                           
+~                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                           
+~                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                           
+~                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                           
+~                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                           
+~                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                           
+~                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                           
+~                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                           
+~                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                           
+~                 
