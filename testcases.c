@@ -1,8 +1,10 @@
  * @file testcases.c
  * @provides testcases
  *
- * TA-BOT:MAILTO
- *
+ * COSC 3250 Assignment 5
+ * @author Maxwell Steffen, Joseph Loparco, ChatGPT4
+ * Instructor Brylow
+ * TA-BOT:MAILTO maxwell.steffen@marquette.edu joseph.loparco@marquette.edu
  */
 /* Embedded XINU, Copyright (C) 2007.  All rights reserved. */
 
