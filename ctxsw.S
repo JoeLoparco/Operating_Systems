@@ -92,7 +92,6 @@ ctxsw:
         ld ra, CTX_RA*8(sp)
         ld t0, CTX_PC*8(sp)
 
-//      mv sp,t3
         addi    sp,sp,256
 
 //      These call and restore segments must match the register data
@@ -117,7 +116,7 @@ ctxsw:
 // ASSIGNMENT 5 TODO:
 // Note: the following code is for the next assignment.  DO NOT uncomment it until you believe your trap handler is working in assignment
 // Determine which mode we privilege mode the process should be in
-        ld t0, CTX_PC*8(t0)
+//      ld t0, CTX_PC*8(t0)
         beq t0, ra, switch
         li t4, SSTATUS_S_MODE
         csrc sstatus, t4
