@@ -1,7 +1,10 @@
 /**
  * @file dispatch.c
  * @provides create, newpid, userret
- *
+ * COSC 3250 Assignment 5
+ * @author Maxwell Steffen, Joseph Loparco, ChatGPT4
+ * Instructor Brylow
+ * TA-BOT:MAILTO maxwell.steffen@marquette.edu joseph.loparco@marquette.edu
  */
 /* Embedded XINU, Copyright (C) 2008.  All rights reserved. */
 
@@ -34,12 +37,11 @@ void dispatch(ulong cause, ulong val, ulong *frame, ulong *program_counter) {
                 if (cause != E_ENVCALL_FROM_UMODE){
                 //* If the trap is not an environment call from U-Mode call xtrap
                         xtrap(frame, cause, val, program_counter);
-
                 }
                 //* Find the system call number that's triggered
                 ulong syscall_num = frame[CTX_A7]; // this is where I think the syscall number is but I'm not sure will ask brylow tomorrow.
                 //* Pass the system call number and any arguments into syscall_dispatch. Make sure to set the return value in the appropriate spot.
-                frame[CTX_A0] = syscall_dispatch(syscall_num, &frame[CTX_A0]); // Not sure where exactly on the frame the arguments for syscall are stored.
+                frame[CTX_A0] = syscall_dispatch(syscall_num, frame); 
                 //* Update the program counter appropriately with set_sepc
                 set_sepc(program_counter + 4);
     }
