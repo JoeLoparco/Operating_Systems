@@ -14,8 +14,8 @@
 #define SYSCALL(num) int status; \
     asm("li a7, %0" : : "i"(SYSCALL_##num)); \
     asm("ecall"); \
-        asm("mv %0, a0" : "=r"(status)); \
-        return status;
+	asm("mv %0, a0" : "=r"(status)); \
+	return status;
 
 
 /* syscall wrapper prototypes */
@@ -106,6 +106,7 @@ syscall sc_getc(ulong *args)
     }
     return SYSERR;
 }
+
 syscall user_getc(int descrp)
 {
     SYSCALL(GETC);
@@ -136,11 +137,10 @@ syscall user_putc(int descrp, char character)
  */
 syscall sc_kill(ulong *args)
 {
-        return kill(currpid);
+	return kill(currpid);
 }
 
 syscall user_kill(void)
 {
     SYSCALL(KILL);
 }
-                                                                   
