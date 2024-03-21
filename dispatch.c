@@ -24,12 +24,12 @@
 
 void dispatch(ulong cause, ulong val, ulong *frame, ulong *program_counter) {
     ulong swi_opcode;
-
+    
     if((long)cause > 0) {
         cause = cause << 1;
         cause = cause >> 1;
 
-        /**
+     /**
                 * TODO:
                 * 
                 * Check to ensure the trap is an environment call from U-Mode
@@ -41,8 +41,31 @@ void dispatch(ulong cause, ulong val, ulong *frame, ulong *program_counter) {
                 //* Find the system call number that's triggered
                 ulong syscall_num = frame[CTX_A7]; // this is where I think the syscall number is but I'm not sure will ask brylow tomorrow.
                 //* Pass the system call number and any arguments into syscall_dispatch. Make sure to set the return value in the appropriate spot.
-                frame[CTX_A0] = syscall_dispatch(syscall_num, frame); 
+                frame[CTX_A0] = syscall_dispatch(syscall_num, frame); //
                 //* Update the program counter appropriately with set_sepc
                 set_sepc(program_counter + 4);
+    }else {
+    	cause = cause << 1;
+    	cause = cause >> 1;
+    	uint irq_num;
+
+    	volatile uint *int_sclaim = (volatile uint *)(PLIC_BASE + 0x201004);
+    	irq_num = *int_sclaim;
+
+    	if(cause == I_SUPERVISOR_EXTERNAL) {
+        	interrupt_handler_t handler = interruptVector[irq_num];
+
+        	*int_sclaim = irq_num;
+        if (handler)
+        {
+            (*handler) ();
+        } else {
+            kprintf("ERROR: No handler registered for interrupt %u\r\n",
+                    irq_num);
+
+            while (1)
+                ;
+        }
     }
+  }
 }
