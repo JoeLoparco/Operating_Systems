@@ -117,13 +117,11 @@ void testcases(void)
 	{
 		case '0':
 			// TODO: Write a testcase that creates a user process and prints out it's page table
-			//pgtbl pagetable = createFakeTable();
-			//printPageTable(pagetable);
-			pid_typ newpid = create((void *)userProcess, INITSTK, 2, "PROC1", 0, NULL);
-			pcb *userproc = &proctab[newpid];
-			printPageTable(userproc->pagetable);
-			//pcb *ppcb =  ready(create((void *)createFakeTable, INITSTK, 2, "PROC1", 0, NULL), RESCHED_NO);
-			//printPageTable(ppcb->pagetable);
+			pgtbl pagetable = createFakeTable();
+			printPageTable(pagetable);
+			//pid_typ newpid = create((void *)userProcess, INITSTK, 2, "PROC1", 0, NULL);
+			//pcb *userproc = &proctab[newpid];
+			//printPageTable(userproc->pagetable);
 			kprintf("Test Case 0 Done.");
 			break;
 		case '1':
