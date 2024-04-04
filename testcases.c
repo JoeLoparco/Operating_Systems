@@ -1,115 +1,103 @@
+/**
  * @file testcases.c
  * @provides testcases
  *
- * COSC 3250 Assignment 5
+ *
+ * Modified by:	
  * @author Maxwell Steffen, Joseph Loparco, ChatGPT4
- * Instructor Brylow
- * TA-BOT:MAILTO maxwell.steffen@marquette.edu joseph.loparco@marquette.edu
+ * TA-BOT:MAILTO maxwell.steffen@marquette.edu joseph.loparco@marquette.edu 
+ *
  */
-/* Embedded XINU, Copyright (C) 2007.  All rights reserved. */
+/* Embedded XINU, Copyright (C) 2023.  All rights reserved. */
 
 #include <xinu.h>
 
-extern void main(int, char *);
+/* Here is a visual representation of the page tables createFakeTable makes.
+ * This will allow you to test your printPageTable function without having paging
+ * completely working.
+ * NOTE: You must have lines 57-58 in initialize.c uncommented for this to work!
+ * ┌──────────┐                  ┌──────────┐                ┌───────────┐
+ * │          │                  │          │                │           │
+ * │          │                  │          │                ├───────────┤
+ * |		  |					 |			|				 |  0x8000	 |
+ * |──────────|                  |──────────|                ├───────────┤
+ * │          ├─────────────────►│          ├───────────────►│           │
+ * │──────────│                  |──────────|                ├───────────┤
+ * |		  |					 |			|				 |  0x4000	 |
+ * │          │                  │          │                ├───────────┤
+ * │          │                  │          │                │           │
+ * │          │                  └──────────┘                ├───────────┤
+ * |		  |					            				 |  0x1000	 |
+ * │          │                                              ├───────────┤
+ * │          │                                              │           │
+ * │          │                                              └───────────┘
+ * └──────────┘
+ */
+pgtbl createFakeTable(void){
+	pgtbl root = pgalloc();
+	pgtbl lvl1 = pgalloc();
+	pgtbl lvl0 = pgalloc();
 
-int test_usernone(void) {
-        kprintf("This is a test of ...");
-        user_none();
-        kprintf("user_none() syscall\r\n");
+	volatile ulong *pte = &(root[5]);
+	*pte = PA2PTE(lvl1) | PTE_V;
 
-        return 0;
+	ulong *lvl1pte = &(lvl1[145]);
+	*lvl1pte = PA2PTE(lvl0) | PTE_V;
+
+	ulong *lvl0pte = &(lvl0[343]);
+	*lvl0pte = PA2PTE(0x1000) | PTE_W | PTE_R | PTE_V;
+
+	ulong *lvl0pte1 = &(lvl0[120]);
+	*lvl0pte1 = PA2PTE(0x4000) | PTE_X | PTE_R | PTE_V;
+
+	ulong *lvl0pte2 = &(lvl0[45]);
+	*lvl0pte2 = PA2PTE(0x8000) | PTE_X | PTE_R | PTE_V;
+
+	return root;kprintf("ptentry is link");
 }
 
-int test_userputc(void) {
-        user_putc(0, 'H');
-        user_putc(0, 'e');
-        user_putc(0, 'l');
-        user_putc(0, 'l');
-        user_putc(0, 'o');
-        user_putc(0, ' ');
-        user_putc(0, 'W');
-        user_putc(0, 'o');
-        user_putc(0, 'r');
-        user_putc(0, 'l');
-        user_putc(0, 'd');
-        user_putc(0, '!');
-        user_putc(0, '\r');
-        user_putc(0, '\n');
+void userProcess(void) {
+    int counter = 0;
 
-        return 0;
-}
-
-int test_usergetc(void) {
-        char c;
-        kprintf("Echo characters until 'X': ");
-        while ((c = user_getc(0)) != 'X')
-        {
-                user_putc(0, c);
-        }
-        kprintf("\r\n");
-
-        return 0;
-}
-
-int testmain(int argc, char **argv)
-{
-    int i = 0;
-    kprintf("Hello XINU World!\r\n");
-
-    for (i = 0; i < 10; i++)
-    {
-        kprintf("This is process %d\r\n", currpid);
-
-        user_yield();
+    while (1) {
+        kprintf("Hello from user process! (Iteration: %d) \r\n", counter++);
+        for(int i=0; i < 1000000; i++)
+	{
+	}	// Sleep for small period of time
     }
-    return 0;
 }
 
-void testbigargs(int a, int b, int c, int d, int e, int f, int g, int h)
+void printPageTable(pgtbl pagetable)
 {
-    kprintf("Testing bigargs...\r\n");
-    kprintf("a = 0x%08X\r\n", a);
-    kprintf("b = 0x%08X\r\n", b);
-    kprintf("c = 0x%08X\r\n", c);
-    kprintf("d = 0x%08X\r\n", d);
-    kprintf("e = 0x%08X\r\n", e);
-    kprintf("f = 0x%08X\r\n", f);
-    kprintf("g = 0x%08X\r\n", g);
-    kprintf("h = 0x%08X\r\n", h);
-}
+	ulong ptentry;
+	ulong frameaddr; 
+	for(int i=0; i < 512 ;i ++){ // i needs to be less than number of page table entries in the given page table(via safemem.h)
+		 ptentry = pagetable[i]; // get page table entry
+	
+		if (ptentry & PTE_V) {
+			//kprintf("ptenrty validattion succesful.\r\n");
+			if(!(ptentry & (PTE_W | PTE_R | PTE_X))){
+				//kprintf("ptentry is link\r\n");
+				pgtbl nxtpgtbl = (pgtbl)PTE2PA(ptentry);
+				//kprintf("next page table adress created succesfully\r\n");
+				frameaddr = PTE2PA(ptentry);
+                                kprintf("LINK: entry #%d: maps to 0x%08x\r\n", i, frameaddr);
+				printPageTable(nxtpgtbl);
+				//kprintf("printPagaTable occured\r\n");
+			}else {
+				frameaddr = PTE2PA(ptentry);
+				kprintf("LEAF: entry #%d: maps to 0x%08x\r\n", i, frameaddr);
+			}
+		}
 
-void printpcb(int pid)
-{
-    pcb *ppcb = NULL;
+	}  
+	/*
+	* TODO: Write a function that prints out the page table.
+	* Your function should print out all *valid* page table entries in the page table
+	* If any of the entires are a link (if the Read/Write/Execute bits aren't set), recursively print that page table
+	* Otherwise if it's a leaf, print the page table entry and the physical address is maps to. 
+	*/
 
-    /* Using the process ID, access it in the PCB table. */
-    ppcb = &proctab[pid];
-
-    /* Printing PCB */
-    kprintf("Process name                 : %s \r\n", ppcb->name);
-
-    switch (ppcb->state)
-    {
-    case PRFREE:
-        kprintf("State of the process     : FREE \r\n");
-        break;
-    case PRCURR:
-        kprintf("State of the process     : CURRENT \r\n");
-        break;
-    case PRSUSP:
-        kprintf("State of the process     : SUSPENDED \r\n");
-        break;
-    case PRREADY:
-        kprintf("State of the process     : READY \r\n");
-        break;
-    default:
-        kprintf("ERROR: Process state not correctly set!\r\n");
-        break;
-    }
-
-    /* Print PCB contents and registers */
-    kprintf("Base of run time stack    : 0x%08X \r\n", ppcb->stkbase);
-    kprintf("Stack length of process   : %8u \r\n", ppcb->stklen);
 }
 
 /**
@@ -117,68 +105,40 @@ void printpcb(int pid)
  */
 void testcases(void)
 {
-    int c;
+	uchar c;
 
-    kprintf("0) Test user_none syscall\r\n");
-    kprintf("1) Test user_getc syscall\r\n");
-    kprintf("2) Test user_putc syscall\r\n");
-    kprintf("3) Create three processes that test user_yield syscall\r\n");
+	kprintf("===TEST BEGIN===\r\n");
 
-    kprintf("===TEST BEGIN===\r\n");
+	// TODO: Test your operating system!
 
-    // TODO: Test your operating system!
+	c = kgetc();
 
-    c = kgetc();
-    kprintf("after kgetc");
-    switch (c)
-    {
-    case '0':
-        ready(create((void *)test_usernone, INITSTK, "test_usernone", 0),
-              RESCHED_YES);
-                break;
+	switch (c)
+	{
+		case '0':
+			// TODO: Write a testcase that creates a user process and prints out it's page table
+			//pgtbl pagetable = createFakeTable();
+			//printPageTable(pagetable);
+			pid_typ newpid = create((void *)userProcess, INITSTK, 2, "PROC1", 0, NULL);
+			pcb *userproc = &proctab[newpid];
+			printPageTable(userproc->pagetable);
+			//pcb *ppcb =  ready(create((void *)createFakeTable, INITSTK, 2, "PROC1", 0, NULL), RESCHED_NO);
+			//printPageTable(ppcb->pagetable);
+			kprintf("Test Case 0 Done.");
+			break;
+		case '1':
+			// TODO: Write a testcase that demonstrates a user process cannot access certain areas of memory
+			break;
+		case '2':
+			// TODO: Write a testcase that demonstrates a user process can read kernel variables but cannot write to them
+			break;
+		case '3':
+			// TODO: Extra credit! Add handling in xtrap to detect and print out a Null Pointer Exception.  Write a testcase that demonstrates your OS can detect a Null Pointer Exception.
+			break;
+		default:
+			break;
+	}
 
-    case '1':
-        ready(create((void *)test_usergetc, INITSTK, "test_usergetc", 0),
-              RESCHED_YES);
-        break;
-
-    case '2':
-        ready(create((void *)test_userputc, INITSTK, "test_userputc", 0),
-              RESCHED_YES);
-                break;
-
-    case '3':
-        // Create three copies of a process, and let them play.
-        ready(create((void *)testmain, INITSTK, "MAIN1", 2, 0, NULL),
-              RESCHED_NO);
-        ready(create((void *)testmain, INITSTK, "MAIN2", 2, 0, NULL),
-              RESCHED_NO);
-        ready(create((void *)testmain, INITSTK, "MAIN3", 2, 0, NULL),
-              RESCHED_YES);
-        while (numproc > 1)
-            resched();
-        break;
-
-    default:
-        break;
-    }
-
-    kprintf("\r\n===TEST END===\r\n");
-    return;
+	kprintf("\r\n===TEST END===\r\n");
+	return;
 }
-~                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                          
-~                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                          
-~                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                          
-~                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                          
-~                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                          
-~                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                          
-~                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                          
-~                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                          
-~                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                          
-~                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                          
-~                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                          
-~                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                          
-~                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                          
-~                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                          
-~                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                          
-~                                                                

@@ -23,7 +23,7 @@ void *getstk(ulong);
  * @param nargs    number of arguments that follow
  * @return the new process id
  */
-syscall create(void *funcaddr, ulong ssize, ulong priority, char *name, ulong nargs, ...)
+syscall create(void *funcaddr, ulong ssize, uint priority, char *name, ulong nargs, ...)
 {
     ulong *saddr;               /* stack address                */
     ulong pid;                  /* stores new process id        */
@@ -36,7 +36,8 @@ syscall create(void *funcaddr, ulong ssize, ulong priority, char *name, ulong na
         ssize = MINSTK;
 
     ssize = (ulong)((((ulong)(ssize + 3)) >> 2) << 2);
-    saddr = (ulong *)getstk(ssize);     /* allocate new stack and pid   */
+    saddr = pgalloc();     /* allocate new page   */
+    //saddr = (ulong *)getstk(ssize);
     pid = newpid();
     if ((((ulong *)SYSERR) == saddr) || (SYSERR == pid))
     {
@@ -52,7 +53,10 @@ syscall create(void *funcaddr, ulong ssize, ulong priority, char *name, ulong na
     ppcb->stklen = ssize;
     ppcb->tickets = priority;
     strncpy(ppcb->name, name, strlen(name));
-    //ppcb->name[PNMLEN - 1] = '\0'; 
+    ppcb->pagetable = vm_userinit(pid, saddr); //creates pagetable value for pcb struct
+    //ppcb->name[PNMLEN - 1] = '\0'; 	
+    
+    *saddr = *saddr + PAGE_SIZE;// moves addr to to of page 
 
     *saddr = STACKMAGIC; // Initialize stack with accounting block
     *--saddr = pid;
@@ -99,7 +103,9 @@ syscall create(void *funcaddr, ulong ssize, ulong priority, char *name, ulong na
 	}
     }*/
 
+
     ppcb->stkptr = saddr; // Update process stack pointer in PCB
+    saddr[CTX_SP] = (ulong)(PROCSTACKADDR + PAGE_SIZE - ((ulong)ppcb->stkbase - (ulong)saddr));
     va_end(ap);
     return pid;
 }
